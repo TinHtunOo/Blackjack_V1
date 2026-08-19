@@ -35,4 +35,9 @@ export class Deck {
     const drawnCard = this.cards.pop();
     return drawnCard;
   }
+
+  needReshuffle() {
+    const reshuffleThreshore = 20; // 20%
+    return this.cards.length < (this.numDecks * 52 * reshuffleThreshore) / 100;
+  }
 }
