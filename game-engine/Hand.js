@@ -25,9 +25,6 @@ export class Hand {
       aceCount--;
     }
 
-    console.log("total", total);
-    console.log("aceCount", aceCount);
-
     return total;
   }
 
