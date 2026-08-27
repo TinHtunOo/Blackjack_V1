@@ -11,6 +11,10 @@ export class Game {
     this.deck.shuffle();
   }
 
+  get activeHand() {
+    return this.playerHands[this.activeHandIndex];
+  }
+
   dealInitial() {
     // this.playerHands[this.activeHandIndex].clearHand();
     this.activeHandIndex = 0;
@@ -80,7 +84,9 @@ export class Game {
     } else {
       this.activeHandIndex++;
       this.playerHands[this.activeHandIndex].addCard(this.deck.draw());
-      return { message: "Move to next hand" };
+      return {
+        message: "Move to next hand",
+      };
     }
   }
 
@@ -159,15 +165,12 @@ export class Game {
       cardsInHand.length === 2 &&
       cardsInHand[0].value === cardsInHand[1].value
     ) {
-      const hand1 = new Hand();
-      const hand2 = new Hand();
-      hand1.addCard(cardsInHand[0]);
-      hand2.addCard(cardsInHand[1]);
-      hand1.addCard(this.deck.draw());
-      this.playerHands.splice(this.activeHandIndex, 1);
-      this.playerHands.push(hand1);
-      this.playerHands.push(hand2);
-      return { success: true, activeHandValue: hand1.getHandValue() };
+      const splitCard = cardsInHand.pop();
+      const newHand = new Hand();
+      newHand.addCard(splitCard);
+      activeHand.addCard(this.deck.draw());
+      this.playerHands.push(newHand);
+      return { success: true, activeHandValue: activeHand.getHandValue() };
     } else {
       return { success: false, message: "The player cannot split them." };
     }

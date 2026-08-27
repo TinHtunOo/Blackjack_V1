@@ -20,5 +20,9 @@
   "bugs": {
     "url": "https://github.com/TinHtunOo/Blackjack_V1/issues"
   },
-  "homepage": "https://github.com/TinHtunOo/Blackjack_V1#readme"
+  "homepage": "https://github.com/TinHtunOo/Blackjack_V1#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "morgan": "^1.11.0"
+  }
 }

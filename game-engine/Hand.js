@@ -35,4 +35,8 @@ export class Hand {
   isBlackjack() {
     return this.cardsInHand.length === 2 && this.getHandValue() === 21;
   }
+
+  getCardsPlain() {
+    return this.cardsInHand.map((c) => ({ rank: c.rank, suit: c.suit }));
+  }
 }
