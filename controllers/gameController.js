@@ -93,10 +93,16 @@ export const result = (req, res) => {
   const outcome = game.determineWinner();
   const playerHandsValue = game.playerHands.map((hand) => hand.getHandValue());
   const dealerHandValue = game.dealerHand.getHandValue();
+  const dealerCards = game.dealerHand.cardsInHand.map((c) => ({
+    card: { rank: c.rank, suit: c.suit },
+    hidden: false,
+  }));
+
   res.status(200).json({
     status: "success",
     result: outcome,
     playerHandsValue,
     dealerHandValue,
+    dealerCards,
   });
 };
