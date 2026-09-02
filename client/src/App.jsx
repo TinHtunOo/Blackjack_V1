@@ -26,7 +26,8 @@ function App() {
     setError(null);
     try {
       const res = await axios.post(`${API_BASE}/deal`);
-      const { playerCards, dealerCards } = res.data;
+      const { playerCards, dealerCards, isPlayerBlackjack } = res.data;
+
       setGameState({
         phase: "playing",
         playerHands: [{ cards: playerCards, value: null, isBust: false }],
@@ -35,6 +36,7 @@ function App() {
         dealerHandValue: null,
         results: null,
       });
+      if (isPlayerBlackjack) advanceTurn();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to deal.");
     } finally {
@@ -123,10 +125,20 @@ function App() {
       if (res.data.playerHandsValue) {
         await fetchResult();
       } else {
-        setGameState((prev) => ({
-          ...prev,
-          activeHandIndex: prev.activeHandIndex + 1,
-        }));
+        setGameState((prev) => {
+          const updatedHands = [...prev.playerHands];
+
+          updatedHands[prev.activeHandIndex + 1] = {
+            cards: res.data.nextPlayerCards,
+            value: res.data.playerHandValue,
+            isBust: false,
+          };
+          return {
+            ...prev,
+            activeHandIndex: prev.activeHandIndex + 1,
+            playerHands: updatedHands,
+          };
+        });
       }
     } catch (err) {
       setError(err.response?.data?.message || "Failed to advance turn.");

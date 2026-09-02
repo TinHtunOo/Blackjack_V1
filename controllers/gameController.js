@@ -23,6 +23,7 @@ export const deal = (req, res) => {
   res.status(200).json({
     status: "success",
     playerCards,
+    isPlayerBlackjack: game.activeHand.isBlackjack(),
     dealerCards,
   });
 };
@@ -46,6 +47,7 @@ export const stand = (req, res) => {
       status: "success",
       message: result.message,
       nextPlayerCards: game.activeHand.getCardsPlain(),
+      playerHandValue: game.activeHand.getHandValue(),
     });
   }
   const { playerHandsValue, dealerHandValue } = result;

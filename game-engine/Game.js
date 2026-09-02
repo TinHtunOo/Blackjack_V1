@@ -70,13 +70,22 @@ export class Game {
 
   stand() {
     const isLastHand = this.activeHandIndex === this.playerHands.length - 1;
-
+    const isPlayerBlackjack =
+      this.playerHands.length === 1 &&
+      this.playerHands[this.activeHandIndex].isBlackjack();
     if (isLastHand) {
       let playerHandsValue = [];
       for (let i = 0; i < this.playerHands.length; i++) {
         playerHandsValue.push(this.playerHands[i].getHandValue());
       }
-      this.dealerPlay();
+
+      if (
+        !this.playerHands.every((hand) => hand.isBust()) &&
+        !isPlayerBlackjack
+      ) {
+        this.dealerPlay();
+      }
+
       return {
         playerHandsValue,
         dealerHandValue: this.dealerHand.getHandValue(),
@@ -91,33 +100,27 @@ export class Game {
   }
 
   determineWinner() {
+    const isOriginalHand = this.playerHands.length === 1;
     const results = [];
-
     for (let i = 0; i < this.playerHands.length; i++) {
       const activeHand = this.playerHands[i];
-
-      const playerBlackjack = activeHand.isBlackjack();
+      const playerBlackjack = isOriginalHand && activeHand.isBlackjack();
       const dealerBlackjack = this.dealerHand.isBlackjack();
 
       if (activeHand.isBust()) {
         results.push({ result: "dealer" });
         continue;
       }
-
       if (this.dealerHand.isBust()) {
         results.push({ result: "player" });
         continue;
       }
-
       if (playerBlackjack || dealerBlackjack) {
         if (playerBlackjack && dealerBlackjack) {
           results.push({ result: "tie" });
         } else {
-          results.push({
-            result: playerBlackjack ? "player" : "dealer",
-          });
+          results.push({ result: playerBlackjack ? "player" : "dealer" });
         }
-
         continue;
       }
 
@@ -128,12 +131,10 @@ export class Game {
         results.push({ result: "tie" });
         continue;
       }
-
       results.push({
         result: playerValue > dealerValue ? "player" : "dealer",
       });
     }
-
     return results;
   }
 
