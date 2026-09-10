@@ -7,6 +7,7 @@ export const deal = (req, res) => {
   const dealerHand = game.dealerHand;
   const dealerRevealCard = dealerHand.cardsInHand[0];
   const playerCards = game.activeHand.getCardsPlain();
+  const playerHandValue = game.activeHand.getHandValue();
   const dealerCards = [
     {
       card: {
@@ -23,6 +24,7 @@ export const deal = (req, res) => {
   res.status(200).json({
     status: "success",
     playerCards,
+    playerHandValue,
     isPlayerBlackjack: game.activeHand.isBlackjack(),
     dealerCards,
   });
@@ -84,10 +86,16 @@ export const split = (req, res) => {
     });
   }
   const playerCards = game.activeHand.getCardsPlain();
+  // const playerCards = game.playerHands.map((card) => card.getCardsPlain());
+  const nextHandCards =
+    game.playerHands[game.playerHands.length - 1].getCardsPlain();
+  // console.log("playerCards", playerCards);
   res.status(200).json({
     status: "success",
     playerCards,
     handValue: result.activeHandValue,
+    playerHands: result.playerHands,
+    nextHandCards,
   });
 };
 
@@ -105,6 +113,7 @@ export const result = (req, res) => {
     result: outcome,
     playerHandsValue,
     dealerHandValue,
+
     dealerCards,
   });
 };

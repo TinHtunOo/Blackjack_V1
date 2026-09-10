@@ -93,6 +93,7 @@ export class Game {
     } else {
       this.activeHandIndex++;
       this.playerHands[this.activeHandIndex].addCard(this.deck.draw());
+
       return {
         message: "Move to next hand",
       };
@@ -170,8 +171,13 @@ export class Game {
       const newHand = new Hand();
       newHand.addCard(splitCard);
       activeHand.addCard(this.deck.draw());
+
       this.playerHands.push(newHand);
-      return { success: true, activeHandValue: activeHand.getHandValue() };
+      return {
+        success: true,
+        activeHandValue: activeHand.getHandValue(),
+        playerHands: this.playerHands,
+      };
     } else {
       return { success: false, message: "The player cannot split them." };
     }

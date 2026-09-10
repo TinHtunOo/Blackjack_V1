@@ -1,229 +1,52 @@
-import { useState } from "react";
-import axios from "axios";
+import { useBlackjack } from "../hooks/useBlackJack";
+import DealerHand from "../components/DealerHand";
 import PlayerHands from "../components/PlayerHands";
 import ActionButtons from "../components/ActionButtons";
 import ResultsPanel from "../components/ResultsPanel";
-import "./App.css";
-import DealerHand from "../components/dealerHand";
-
-const API_BASE = "http://localhost:3000/api/game";
 
 function App() {
-  const [gameState, setGameState] = useState({
-    phase: "idle",
-    playerHands: [],
-    activeHandIndex: 0,
-    dealerCards: [],
-    dealerHandValue: null,
-    results: null,
-  });
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const handleDeal = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await axios.post(`${API_BASE}/deal`);
-      const { playerCards, dealerCards, isPlayerBlackjack } = res.data;
-
-      setGameState({
-        phase: "playing",
-        playerHands: [{ cards: playerCards, value: null, isBust: false }],
-        activeHandIndex: 0,
-        dealerCards,
-        dealerHandValue: null,
-        results: null,
-      });
-      if (isPlayerBlackjack) advanceTurn();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to deal.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleHit = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await axios.post(`${API_BASE}/hit`);
-      const { playerCards, isBust, handValue } = res.data;
-      setGameState((prev) => {
-        const updatedHands = [...prev.playerHands];
-        updatedHands[prev.activeHandIndex] = {
-          cards: playerCards,
-          value: handValue,
-          isBust,
-        };
-        return { ...prev, playerHands: updatedHands };
-      });
-
-      if (isBust) {
-        await advanceTurn();
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to hit.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDoubleDown = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await axios.post(`${API_BASE}/double-down`);
-      const { playerCards, isBust, handValue } = res.data;
-      setGameState((prev) => {
-        const updatedHands = [...prev.playerHands];
-        updatedHands[prev.activeHandIndex] = {
-          cards: playerCards,
-          value: handValue,
-          isBust,
-        };
-        return { ...prev, playerHands: updatedHands };
-      });
-
-      await advanceTurn();
-    } catch (err) {
-      setError(err.response?.data?.message || "Cannot double down.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchResult = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await axios.get(`${API_BASE}/result`);
-      const { result, playerHandsValue, dealerHandValue, dealerCards } =
-        res.data;
-      setGameState((prev) => ({
-        ...prev,
-        phase: "roundOver",
-        results: result,
-        dealerCards,
-        dealerHandValue,
-        playerHands: prev.playerHands.map((hand, i) => ({
-          ...hand,
-          value: playerHandsValue[i],
-        })),
-      }));
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to fetch result.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const advanceTurn = async () => {
-    try {
-      const res = await axios.post(`${API_BASE}/stand`);
-      if (res.data.playerHandsValue) {
-        await fetchResult();
-      } else {
-        setGameState((prev) => {
-          const updatedHands = [...prev.playerHands];
-
-          updatedHands[prev.activeHandIndex + 1] = {
-            cards: res.data.nextPlayerCards,
-            value: res.data.playerHandValue,
-            isBust: false,
-          };
-          return {
-            ...prev,
-            activeHandIndex: prev.activeHandIndex + 1,
-            playerHands: updatedHands,
-          };
-        });
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to advance turn.");
-    }
-  };
-
-  const handleStand = async () => {
-    setLoading(true);
-    setError(null);
-    await advanceTurn();
-    setLoading(false);
-  };
-
-  const handleSplit = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await axios.post(`${API_BASE}/split`);
-      const { playerCards, handValue } = res.data;
-      setGameState((prev) => {
-        const updatedHands = [...prev.playerHands];
-        updatedHands[prev.activeHandIndex] = {
-          cards: playerCards,
-          value: handValue,
-          isBust: false,
-        };
-        return { ...prev, playerHands: updatedHands };
-      });
-    } catch (err) {
-      setError(err.response?.data?.message || "Cannot split.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleNewRound = () => {
-    setGameState({
-      phase: "idle",
-      playerHands: [],
-      activeHandIndex: 0,
-      dealerCards: [],
-      dealerHandValue: null,
-      results: null,
-    });
-  };
-
-  const activeHand = gameState.playerHands[gameState.activeHandIndex];
-  const canDoubleDown = activeHand && activeHand.cards.length === 2;
-  const canSplit =
-    activeHand &&
-    activeHand.cards.length === 2 &&
-    activeHand.cards[0].rank === activeHand.cards[1].rank;
+  const { gameState, loading, error, canDoubleDown, canSplit, actions } =
+    useBlackjack();
 
   return (
-    <div className="app">
-      <h1>Blackjack</h1>
-      {error && <div className="error">{error}</div>}
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,var(--color-felt-light),var(--color-felt-deep)_70%)] text-card-cream font-body">
+      <div className="max-w-[480px] mx-auto px-5 pt-10 pb-12 flex flex-col gap-10">
+        <h1 className="font-display font-semibold text-2xl text-center tracking-wide">
+          Blackjack
+        </h1>
 
-      <DealerHand
-        dealerCards={gameState.dealerCards}
-        dealerHandValue={gameState.dealerHandValue}
-      />
-      <PlayerHands
-        playerHands={gameState.playerHands}
-        activeHandIndex={gameState.activeHandIndex}
-      />
+        {error && (
+          <div className="bg-[#4a1f1f] border border-ink-red text-card-cream px-3.5 py-2.5 rounded text-sm text-center">
+            {error}
+          </div>
+        )}
 
-      <ActionButtons
-        phase={gameState.phase}
-        isBust={gameState.isBust}
-        loading={loading}
-        canDoubleDown={canDoubleDown}
-        canSplit={canSplit}
-        onDeal={handleDeal}
-        onHit={handleHit}
-        onStand={handleStand}
-        onDoubleDown={handleDoubleDown}
-        onSplit={handleSplit}
-        onSeeResult={fetchResult}
-        onNewRound={handleNewRound}
-      />
+        <DealerHand
+          dealerCards={gameState.dealerCards}
+          dealerHandValue={gameState.dealerHandValue}
+        />
+        <PlayerHands
+          playerHands={gameState.playerHands}
+          activeHandIndex={gameState.activeHandIndex}
+        />
 
-      {gameState.phase === "roundOver" && (
-        <ResultsPanel results={gameState.results} />
-      )}
+        <ActionButtons
+          phase={gameState.phase}
+          loading={loading}
+          canDoubleDown={canDoubleDown}
+          canSplit={canSplit}
+          onDeal={actions.deal}
+          onHit={actions.hit}
+          onStand={actions.stand}
+          onDoubleDown={actions.doubleDown}
+          onSplit={actions.split}
+          onNewRound={actions.newRound}
+        />
+
+        {gameState.phase === "roundOver" && (
+          <ResultsPanel results={gameState.results} />
+        )}
+      </div>
     </div>
   );
 }
