@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import { DEALER_TAUNTS } from "../data/dealerMessages";
 
 const API_BASE = "http://localhost:3000/api/game";
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const REVEAL_DELAY = 1000; // slightly longer than a single card's ~400ms deal-in animation
+const REVEAL_DELAY = 1000;
 const RANK_VALUES = { A: 11, K: 10, Q: 10, J: 10 };
 
 function computeHandValue(cards) {
@@ -31,45 +32,35 @@ export function useBlackjack() {
     results: null,
   });
 
+  const [chips, setChips] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // const fetchResult = async () => {
-  //   setLoading(true);
-  //   setError(null);
-  //   try {
-  //     const res = await axios.get(`${API_BASE}/result`);
-  //     const {
-  //       result,
-  //       playerHandsValue,
-  //       dealerHandValue,
-  //       dealerCardsValue,
-  //       dealerCards,
-  //     } = res.data;
-  //     setGameState((prev) => ({
-  //       ...prev,
-  //       phase: "roundOver",
-  //       results: result,
-  //       dealerCards,
-  //       dealerHandValue,
-  //       playerHands: prev.playerHands.map((hand, i) => ({
-  //         ...hand,
-  //         value: playerHandsValue[i],
-  //       })),
-  //     }));
-  //   } catch (err) {
-  //     setError(err.response?.data?.message || "Failed to fetch result.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  const [dealerMessage, setDealerMessage] = useState(null);
+  const [dealerMessageKey, setDealerMessageKey] = useState(0);
+  // fetch starting chip balance on mount, so it's visible before the first deal
+  useEffect(() => {
+    const loadChips = async () => {
+      try {
+        const res = await axios.get(`${API_BASE}/chips`);
+        setChips(res.data.chips);
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to load chips.");
+      }
+    };
+    loadChips();
+  }, []);
 
   const fetchResult = async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await axios.get(`${API_BASE}/result`);
-      const { result, playerHandsValue, dealerCards } = res.data;
+      const {
+        result,
+        playerHandsValue,
+        dealerCards,
+        chips: newChips,
+      } = res.data;
 
       setGameState((prev) => ({ ...prev, phase: "roundOver", results: null }));
 
@@ -86,7 +77,7 @@ export function useBlackjack() {
       for (let i = 2; i < dealerCards.length; i++) {
         const prefix = dealerCards.slice(0, i + 1);
         setGameState((prev) => ({ ...prev, dealerCards: prefix }));
-        await wait(REVEAL_DELAY); // let the new card finish dropping in
+        await wait(REVEAL_DELAY);
         setGameState((prev) => ({
           ...prev,
           dealerHandValue: computeHandValue(prefix.map((e) => e.card)),
@@ -100,8 +91,14 @@ export function useBlackjack() {
           ...hand,
           value: playerHandsValue[i],
         })),
-        results: result,
+        results: result, // now [{ result, bet, payout }, ...]
       }));
+      const finalDealerValue = computeHandValue(dealerCards.map((e) => e.card));
+      if (finalDealerValue === 21) {
+        triggerDealerTaunt();
+      }
+      // final chip balance, after all payouts applied server-side
+      setChips(newChips);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch result.");
     } finally {
@@ -120,6 +117,7 @@ export function useBlackjack() {
         setGameState((prev) => {
           const updatedHands = [...prev.playerHands];
           updatedHands[prev.activeHandIndex + 1] = {
+            ...updatedHands[prev.activeHandIndex + 1], // keep the bet already set by handleSplit
             cards: nextPlayerCards,
             value: null,
             isBust: false,
@@ -147,24 +145,33 @@ export function useBlackjack() {
     }
   };
 
-  const handleDeal = async () => {
+  const handleDeal = async (betAmount) => {
     setLoading(true);
     setError(null);
+    setDealerMessage(null);
     try {
-      const res = await axios.post(`${API_BASE}/deal`);
-      const { playerCards, dealerCards, isPlayerBlackjack, playerHandValue } =
-        res.data;
+      const res = await axios.post(`${API_BASE}/deal`, { betAmount });
+      const {
+        playerCards,
+        dealerCards,
+        isPlayerBlackjack,
+        playerHandValue,
+        chips: newChips,
+        bet,
+      } = res.data;
 
       setGameState({
         phase: "playing",
         playerHands: [
-          { cards: playerCards, value: playerHandValue, isBust: false },
+          { cards: playerCards, value: playerHandValue, isBust: false, bet },
         ],
         activeHandIndex: 0,
         dealerCards,
         dealerHandValue: null,
         results: null,
       });
+      setChips(newChips);
+
       if (isPlayerBlackjack) advanceTurn();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to deal.");
@@ -224,7 +231,7 @@ export function useBlackjack() {
     setError(null);
     try {
       const res = await axios.post(`${API_BASE}/double-down`);
-      const { playerCards, isBust, handValue } = res.data;
+      const { playerCards, isBust, handValue, chips: newChips, bet } = res.data;
 
       setGameState((prev) => {
         const updatedHands = [...prev.playerHands];
@@ -232,9 +239,11 @@ export function useBlackjack() {
           ...updatedHands[prev.activeHandIndex],
           cards: playerCards,
           value: null,
+          bet,
         };
         return { ...prev, playerHands: updatedHands };
       });
+      setChips(newChips);
 
       await wait(REVEAL_DELAY);
 
@@ -261,24 +270,31 @@ export function useBlackjack() {
     setError(null);
     try {
       const res = await axios.post(`${API_BASE}/split`);
-      const { playerCards, handValue, nextHandCards } = res.data;
+      const {
+        playerCards,
+        handValue,
+        nextHandCards,
+        chips: newChips,
+        bet,
+      } = res.data;
+
       setGameState((prev) => {
         const updatedHands = [...prev.playerHands];
-
         updatedHands[prev.activeHandIndex] = {
           cards: playerCards,
           value: handValue,
           isBust: false,
+          bet,
         };
-
         updatedHands.push({
           cards: nextHandCards,
           value: null,
           isBust: false,
+          bet,
         });
-
         return { ...prev, playerHands: updatedHands };
       });
+      setChips(newChips);
     } catch (err) {
       setError(err.response?.data?.message || "Cannot split.");
     } finally {
@@ -287,6 +303,7 @@ export function useBlackjack() {
   };
 
   const handleNewRound = () => {
+    setDealerMessage(null);
     setGameState({
       phase: "idle",
       playerHands: [],
@@ -295,6 +312,23 @@ export function useBlackjack() {
       dealerHandValue: null,
       results: null,
     });
+  };
+
+  // add near the other actions:
+  const restartChips = async () => {
+    try {
+      const res = await axios.post(`${API_BASE}/restart-chips`);
+      setChips(res.data.chips);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to restart chips.");
+    }
+  };
+
+  const triggerDealerTaunt = () => {
+    const taunt =
+      DEALER_TAUNTS[Math.floor(Math.random() * DEALER_TAUNTS.length)];
+    setDealerMessage(taunt);
+    setDealerMessageKey((k) => k + 1);
   };
 
   const activeHand = gameState.playerHands[gameState.activeHandIndex];
@@ -307,10 +341,13 @@ export function useBlackjack() {
 
   return {
     gameState,
+    chips,
     loading,
     error,
     canDoubleDown,
     canSplit,
+    dealerMessage,
+    dealerMessageKey,
     actions: {
       deal: handleDeal,
       hit: handleHit,
@@ -319,6 +356,7 @@ export function useBlackjack() {
       split: handleSplit,
       newRound: handleNewRound,
       seeResult: fetchResult,
+      restartChips,
     },
   };
 }

@@ -1,9 +1,13 @@
 import Card from "./Card";
+import { User, Coins, AlertTriangle } from "lucide-react";
 
 function PlayerHands({ playerHands, activeHandIndex }) {
   return (
     <section className="flex flex-col items-center gap-2.5">
-      <h2 className="font-body font-medium text-sm text-card-cream/60">You</h2>
+      <h2 className="flex items-center gap-1.5 font-body font-medium text-sm text-card-cream/60">
+        <User className="w-3.5 h-3.5" strokeWidth={2} aria-hidden="true" />
+        You
+      </h2>
       <div className="flex gap-7 flex-wrap justify-center">
         {playerHands.map((hand, i) => (
           <div
@@ -19,11 +23,23 @@ function PlayerHands({ playerHands, activeHandIndex }) {
                 <Card key={j} card={c} index={j} />
               ))}
             </div>
-            <p className="font-display text-2xl min-h-[1.6rem]">
+
+            <p className="hand-value">
               {hand.value !== null ? hand.value : "\u00A0"}
             </p>
+            {hand.bet != null && (
+              <p className="flex items-center gap-1 text-xs text-card-cream/60 font-body">
+                <Coins className="w-3 h-3" strokeWidth={2} aria-hidden="true" />
+                {hand.bet}
+              </p>
+            )}
             {hand.isBust && (
-              <p className="text-xs text-ink-red bg-card-cream px-2 py-0.5 rounded-sm">
+              <p className="bust-tag flex items-center gap-1">
+                <AlertTriangle
+                  className="w-3 h-3"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
                 Bust
               </p>
             )}

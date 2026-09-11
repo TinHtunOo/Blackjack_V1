@@ -1,3 +1,5 @@
+import { Diamond } from "lucide-react";
+
 const SUIT_SYMBOLS = { spades: "♠", hearts: "♥", diamonds: "♦", clubs: "♣" };
 const RED_SUITS = ["hearts", "diamonds"];
 
@@ -5,6 +7,9 @@ function Card({ card, faceDown = false, index = 0, isPlayerHand = true }) {
   const isRed = card && RED_SUITS.includes(card.suit);
   const playerStyle = { animationDelay: `${index < 2 ? index * 500 : 500}ms` };
   const dealerStyle = { animationDelay: `${index * 500}ms` };
+  const suitSymbol = card ? SUIT_SYMBOLS[card.suit] : null;
+  const colorClass = isRed ? "text-ink-red" : "text-ink-black";
+
   return (
     <div
       className="w-13 h-18 [perspective:800px] animate-deal-in"
@@ -15,25 +20,29 @@ function Card({ card, faceDown = false, index = 0, isPlayerHand = true }) {
           faceDown ? "[transform:rotateY(180deg)]" : ""
         }`}
       >
-        <div className="absolute inset-0 rounded-md [backface-visibility:hidden] bg-card-cream shadow-md flex flex-col items-center justify-center gap-0.5">
+        <div className="absolute inset-0 rounded-md [backface-visibility:hidden] bg-card-cream shadow-md border border-black/5 flex flex-col items-center justify-center gap-0.5">
           {card && (
             <>
               <span
-                className={`font-display font-semibold text-xl leading-none ${
-                  isRed ? "text-ink-red" : "text-ink-black"
-                }`}
+                className={`font-display font-semibold text-xl leading-none ${colorClass}`}
               >
                 {card.rank}
               </span>
-              <span
-                className={`text-lg leading-none ${isRed ? "text-ink-red" : "text-ink-black"}`}
-              >
-                {SUIT_SYMBOLS[card.suit]}
+              <span className={`text-lg leading-none ${colorClass}`}>
+                {suitSymbol}
               </span>
             </>
           )}
         </div>
-        <div className="absolute inset-0 rounded-md [backface-visibility:hidden] [transform:rotateY(180deg)] border border-gold bg-[repeating-linear-gradient(135deg,var(--color-felt-light),var(--color-felt-light)_6px,#0a3a2c_6px,#0a3a2c_12px)]" />
+        <div className="absolute inset-0 rounded-md [backface-visibility:hidden] [transform:rotateY(180deg)] border border-gold bg-[repeating-linear-gradient(135deg,var(--color-felt-light),var(--color-felt-light)_6px,#0a3a2c_6px,#0a3a2c_12px)] flex items-center justify-center">
+          <Diamond
+            className="w-5 h-5 text-gold/70"
+            strokeWidth={1.5}
+            fill="currentColor"
+            fillOpacity={0.15}
+            aria-hidden="true"
+          />
+        </div>
       </div>
     </div>
   );
