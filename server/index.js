@@ -5,9 +5,6 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: "./.env" });
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-console.log(PORT);
 const allowedOrigins = [
   "http://localhost:5173",
   "https://blackjack-v1999.vercel.app/",
@@ -18,6 +15,9 @@ app.use(
     origin: allowedOrigins,
   }),
 );
+
+const app = express();
+const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 app.get("/", (req, res) => {
