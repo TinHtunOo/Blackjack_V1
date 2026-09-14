@@ -1,4 +1,4 @@
-import { useBlackjack } from "../hooks/useBlackJack";
+import { useBlackjack } from "../hooks/useBlackJack.js";
 import DealerHand from "../components/DealerHand";
 import PlayerHands from "../components/PlayerHands";
 import ActionButtons from "../components/ActionButtons";

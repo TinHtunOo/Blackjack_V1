@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { DEALER_TAUNTS } from "../data/dealerMessages";
+import { DEALER_TAUNTS } from "../data/dealerMessages.js";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
