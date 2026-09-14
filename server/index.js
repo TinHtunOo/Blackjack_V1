@@ -7,7 +7,7 @@ dotenv.config({ path: "./.env" });
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://blackjack-v1999.vercel.app/",
+  "https://blackjack-v1999.vercel.app",
 ];
 const app = express();
 
