@@ -8,7 +8,16 @@ dotenv.config({ path: "./.env" });
 const app = express();
 const PORT = process.env.PORT || 3000;
 console.log(PORT);
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://blackjack-v1999.vercel.app/",
+];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+  }),
+);
 app.use(express.json());
 
 app.get("/", (req, res) => {
