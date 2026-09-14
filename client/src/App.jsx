@@ -1,9 +1,9 @@
-import { useBlackjack } from "../hooks/useBlackJack.js";
 import DealerHand from "../components/DealerHand";
 import PlayerHands from "../components/PlayerHands";
 import ActionButtons from "../components/ActionButtons";
 import ResultsPanel from "../components/ResultsPanel";
 import { Coins, AlertCircle } from "lucide-react";
+import { useBlackjack } from "../hooks/useBlackjack";
 
 function App() {
   const {
