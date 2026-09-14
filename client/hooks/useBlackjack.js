@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { DEALER_TAUNTS } from "../data/dealerMessages";
 
-const API_BASE = "http://localhost:3000/api/game";
+const API_BASE = import.meta.env.VITE_API_URL;
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const REVEAL_DELAY = 1000;
 const RANK_VALUES = { A: 11, K: 10, Q: 10, J: 10 };
