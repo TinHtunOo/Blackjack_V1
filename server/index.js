@@ -9,6 +9,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://blackjack-v1999.vercel.app/",
 ];
+const app = express();
 
 app.use(
   cors({
@@ -16,7 +17,6 @@ app.use(
   }),
 );
 
-const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
