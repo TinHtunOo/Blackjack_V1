@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
+import { randomUUID } from "crypto";
 import gameRouter from "../routes/gameRoutes.js";
 import dotenv from "dotenv";
 
@@ -19,15 +21,17 @@ app.use(
   }),
 );
 
+app.use(cookieParser());
 app.use(express.json());
+
 app.use((req, res, next) => {
   if (!req.cookies.sessionId) {
     const sessionId = randomUUID();
     res.cookie("sessionId", sessionId, {
       httpOnly: true,
       sameSite: "none",
-      secure: true, // required alongside sameSite: "none"
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      secure: true,
+      maxAge: 1000 * 60 * 60 * 24 * 7,
     });
     req.sessionId = sessionId;
   } else {
