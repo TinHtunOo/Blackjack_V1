@@ -3,7 +3,19 @@ import axios from "axios";
 import { DEALER_TAUNTS } from "../data/dealerMessages.js";
 
 const API_BASE = import.meta.env.VITE_API_URL;
-axios.defaults.withCredentials = true;
+const SESSION_KEY = "blackjack_session_id";
+
+function getOrCreateSessionId() {
+  let id = localStorage.getItem(SESSION_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(SESSION_KEY, id);
+  }
+  return id;
+}
+
+axios.defaults.headers.common["x-session-id"] = getOrCreateSessionId();
+
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const REVEAL_DELAY = 1000;
 const RANK_VALUES = { A: 11, K: 10, Q: 10, J: 10 };

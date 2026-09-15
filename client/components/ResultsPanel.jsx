@@ -1,5 +1,3 @@
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
-
 function ResultsPanel({ results }) {
   if (!results) return null;
 
