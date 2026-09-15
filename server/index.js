@@ -10,15 +10,31 @@ const allowedOrigins = [
   "https://blackjack-v1999.vercel.app",
 ];
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 app.use(
   cors({
     origin: allowedOrigins,
+    credentials: true,
   }),
 );
 
-const PORT = process.env.PORT || 3000;
 app.use(express.json());
+app.use((req, res, next) => {
+  if (!req.cookies.sessionId) {
+    const sessionId = randomUUID();
+    res.cookie("sessionId", sessionId, {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true, // required alongside sameSite: "none"
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    });
+    req.sessionId = sessionId;
+  } else {
+    req.sessionId = req.cookies.sessionId;
+  }
+  next();
+});
 
 app.get("/", (req, res) => {
   res.send("Blackjack API is running.");
@@ -27,5 +43,5 @@ app.get("/", (req, res) => {
 app.use("/api/game", gameRouter);
 
 app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
+  console.log(`Server listening on ${PORT}`);
 });
