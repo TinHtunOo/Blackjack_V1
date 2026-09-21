@@ -4,6 +4,7 @@ import ActionButtons from "../components/ActionButtons";
 import ResultsPanel from "../components/ResultsPanel";
 import { Coins, AlertCircle } from "lucide-react";
 import { useBlackjack } from "../hooks/useBlackjack";
+import RulesModal from "../components/RulesModal";
 
 function App() {
   const {
@@ -27,6 +28,7 @@ function App() {
               Black<span className="text-red-600">jack</span>
             </span>
           </h1>
+          <RulesModal />
           <div className="flex items-center gap-1.5 font-display text-lg text-gold">
             <Coins className="w-4.5 h-4.5" strokeWidth={2} aria-hidden="true" />
             {chips !== null ? chips : "\u00A0"}
