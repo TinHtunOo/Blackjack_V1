@@ -41,7 +41,7 @@ function RulesModal() {
       <button
         onClick={() => setIsOpen(true)}
         aria-label="How to play"
-        className="flex items-center justify-center w-9 h-9 rounded-full border border-gold/60 text-card-cream cursor-pointer transition-colors duration-200 hover:bg-gold hover:text-felt-deep"
+        className="flex items-center justify-center w-9 h-9 rounded-full text-card-cream cursor-pointer transition-colors duration-200 hover:bg-gold hover:text-felt-deep"
       >
         <Info className="w-4.5 h-4.5" strokeWidth={2} aria-hidden="true" />
       </button>
@@ -56,7 +56,7 @@ function RulesModal() {
             aria-modal="true"
             aria-labelledby="rules-title"
             onClick={(e) => e.stopPropagation()}
-            className="w-full sm:max-w-md max-h-[85vh] sm:max-h-[80vh] overflow-y-auto bg-felt-light border border-gold/40 rounded-t-2xl sm:rounded-2xl px-5 pt-5 pb-8 sm:p-6 shadow-2xl"
+            className="w-full sm:max-w-md max-h-[85vh] sm:max-h-[80vh] overflow-y-auto bg-felt-light border border-gold/40 rounded-md px-5 pt-5 pb-8 sm:p-6 shadow-2xl"
           >
             <div className="flex items-center justify-between mb-4">
               <h2
